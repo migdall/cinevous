@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinevous — Your Film Diary, Reimagined</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    ::selection { background: rgba(212,165,116,0.3); }
+    
+    body {
+      background: #0d0d0d;
+      color: #e8e4df;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    .grain {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(13,13,13,0.95) 0%, rgba(13,13,13,0) 100%);
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: #f5f2ed;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: #f5f2ed;
+    }
+
+    .nav-cta {
+      background: #d4a574 !important;
+      color: #1a1714 !important;
+      padding: 12px 24px;
+      border-radius: 2px;
+    }
+
+    .nav-cta:hover {
+      background: #c9956c !important;
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 120px 40px 80px;
+      position: relative;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212,165,116,0.08) 0%, transparent 60%);
+    }
+
+    .hero-badge {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #d4a574;
+      padding: 8px 16px;
+      border: 1px solid rgba(212,165,116,0.3);
+      border-radius: 2px;
+      margin-bottom: 40px;
+      animation: fadeIn 1s ease 0.2s both;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      animation: fadeIn 1s ease 0.4s both;
+    }
+
+    .hero h1 span {
+      color: #d4a574;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      color: rgba(255,255,255,0.6);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 50px;
+      animation: fadeIn 1s ease 0.6s both;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 20px;
+      animation: fadeIn 1s ease 0.8s both;
+    }
+
+    .btn-primary {
+      background: #d4a574;
+      color: #1a1714;
+      padding: 18px 40px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: #c9956c;
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #e8e4df;
+      padding: 18px 40px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.3);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      animation: fadeIn 1s ease 1.2s both;
+    }
+
+    .scroll-indicator::after {
+      content: '';
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+      animation: scrollPulse 2s ease infinite;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 120px 60px;
+      background: linear-gradient(180deg, transparent 0%, rgba(26,23,20,0.5) 50%, transparent 100%);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .section-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #d4a574;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 300;
+      color: #f5f2ed;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 2px;
+      padding: 40px;
+      transition: all 0.4s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(212,165,116,0.3);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 24px;
+      opacity: 0.8;
+    }
+
+    .feature-card h3 {
+      font-size: 1.3rem;
+      font-weight: 400;
+      margin-bottom: 12px;
+      color: #f5f2ed;
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7;
+    }
+
+    /* How It Works */
+    .how-it-works {
+      padding: 120px 60px;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 40px;
+      right: -30px;
+      width: 60px;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .step-number {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(212,165,116,0.15) 0%, rgba(212,165,116,0.05) 100%);
+      border: 1px solid rgba(212,165,116,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 1.8rem;
+      color: #d4a574;
+      font-weight: 300;
+    }
+
+    .step h3 {
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 12px;
+      color: #f5f2ed;
+    }
+
+    .step p {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    /* Fantasy League Section */
+    .fantasy {
+      padding: 120px 60px;
+      background: linear-gradient(135deg, rgba(212,165,116,0.05) 0%, transparent 50%);
+    }
+
+    .fantasy-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .fantasy-text h2 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 300;
+      margin-bottom: 24px;
+      color: #f5f2ed;
+    }
+
+    .fantasy-text p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.8;
+      margin-bottom: 32px;
+    }
+
+    .fantasy-features {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .fantasy-feature {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .fantasy-feature span {
+      color: #d4a574;
+    }
+
+    .fantasy-visual {
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 2px;
+      padding: 40px;
+    }
+
+    .league-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .league-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 8px;
+    }
+
+    .league-header h4 {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #f5f2ed;
+    }
+
+    .league-header span {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      color: #d4a574;
+    }
+
+    .league-row {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 0;
+    }
+
+    .league-rank {
+      font-size: 1.2rem;
+      color: #d4a574;
+      font-weight: 300;
+    }
+
+    .league-rank.dim {
+      color: rgba(255,255,255,0.3);
+    }
+
+    .league-name {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .league-name.highlight {
+      color: #f5f2ed;
+    }
+
+    .league-points {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: #d4a574;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 120px 60px;
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 100%, rgba(212,165,116,0.08) 0%, transparent 60%);
+    }
+
+    .cta-section h2 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300;
+      margin-bottom: 24px;
+      color: #f5f2ed;
+    }
+
+    .cta-section p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.5);
+      max-width: 500px;
+      margin: 0 auto 40px;
+    }
+
+    /* Footer */
+    footer {
+      padding: 60px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-size: 1.2rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      nav {
+        padding: 20px 30px;
+      }
+
+      .nav-links {
+        gap: 24px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+      }
+
+      .steps {
+        flex-direction: column;
+        gap: 40px;
+      }
+
+      .step:not(:last-child)::after {
+        display: none;
+      }
+
+      .fantasy-content {
+        grid-template-columns: 1fr;
+      }
+
+      .hero, .features, .how-it-works, .fantasy, .cta-section {
+        padding-left: 30px;
+        padding-right: 30px;
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 24px;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero-ctas {
+        flex-direction: column;
+        width: 100%;
+        max-width: 280px;
+      }
+
+      .btn-primary, .btn-secondary {
+        width: 100%;
+        text-align: center;
+      }
+
+      .nav-links a:not(.nav-cta) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">CINEVOUS</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#fantasy">Fantasy League</a>
+      <a href="cinevous.html" class="nav-cta">Open App</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-badge">Now in Beta</div>
+    <h1>Your film diary,<br><span>reimagined</span></h1>
+    <p class="hero-subtitle">
+      A thoughtful space for cinema lovers. Log films, create custom rating rubrics, 
+      build ranked lists, and compete in fantasy film leagues with friends.
+    </p>
+    <div class="hero-ctas">
+      <a href="cinevous.html" class="btn-primary">Start Logging</a>
+      <a href="#features" class="btn-secondary">Learn More</a>
+    </div>
+    <div class="scroll-indicator">Scroll</div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="section-header">
+      <p class="section-label">Features</p>
+      <h2 class="section-title">Built for how you experience film</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">◐</div>
+        <h3>Gentle Recognition</h3>
+        <p>No streaks that shame you. Just quiet acknowledgment when you've found a rhythm — like noticing you've watched films three weekends in a row.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◎</div>
+        <h3>Variety Progress</h3>
+        <p>Track exploration, not just quantity. See how many genres, decades, and countries you've visited this quarter. Resets fresh each season.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◇</div>
+        <h3>Cinema Quests</h3>
+        <p>Optional micro-challenges that feel like suggestions from a friend. "Try a documentary this week." Complete a few, earn a simple memento.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✦</div>
+        <h3>Custom Rubrics</h3>
+        <p>Rate films on your terms. Create weighted categories like Direction, Cinematography, Emotional Impact — or build your own from scratch.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">≡</div>
+        <h3>Ranked Lists</h3>
+        <p>Build and share ranked lists of your favorite films. Drag to reorder. Perfect for "Best of the Year" or "Films That Made Me Cry."</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">☽</div>
+        <h3>Mood & Moment</h3>
+        <p>Capture how a film made you feel and when you watched it. Your data powers quirky year-end stats like "Most Late-Night Watch."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="section-header">
+      <p class="section-label">Getting Started</p>
+      <h2 class="section-title">Three steps to cinematic joy</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Log a Film</h3>
+        <p>Add the title, director, and year. Choose a mood. Rate it your way — simple 1-10 or detailed rubric.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Build Your Taste</h3>
+        <p>Over time, your diary reveals patterns. Directors you love. Decades you gravitate toward. Moods you chase.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Share & Compete</h3>
+        <p>Create lists, join fantasy leagues, and discover films through friends who see cinema the way you do.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fantasy League Section -->
+  <section class="fantasy" id="fantasy">
+    <div class="fantasy-content">
+      <div class="fantasy-text">
+        <h2>Fantasy Film League</h2>
+        <p>
+          Draft films releasing this year and compete with friends. Earn points through 
+          the quarterly regular season, then battle it out in the playoffs: Golden Globes 
+          and the Oscar Championship.
+        </p>
+        <div class="fantasy-features">
+          <div class="fantasy-feature">
+            <span>◆</span> Draft 5 films you believe in
+          </div>
+          <div class="fantasy-feature">
+            <span>◆</span> Earn points from box office & reviews
+          </div>
+          <div class="fantasy-feature">
+            <span>◆</span> Bonus points for awards recognition
+          </div>
+          <div class="fantasy-feature">
+            <span>◆</span> Quarterly standings + playoff rounds
+          </div>
+        </div>
+      </div>
+      <div class="fantasy-visual">
+        <div class="league-preview">
+          <div class="league-header">
+            <h4>Cinephile Championship</h4>
+            <span>Golden Globes</span>
+          </div>
+          <div class="league-row">
+            <span class="league-rank">1</span>
+            <span class="league-name highlight">You</span>
+            <span class="league-points">972</span>
+          </div>
+          <div class="league-row">
+            <span class="league-rank dim">2</span>
+            <span class="league-name">FilmBuff_Sarah</span>
+            <span class="league-points">892</span>
+          </div>
+          <div class="league-row">
+            <span class="league-rank dim">3</span>
+            <span class="league-name">CinematicMike</span>
+            <span class="league-points">831</span>
+          </div>
+          <div class="league-row">
+            <span class="league-rank dim">4</span>
+            <span class="league-name">ReelTalk_Amy</span>
+            <span class="league-points">751</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <h2>Ready to start logging?</h2>
+    <p>Join film lovers who want more than just a watchlist. Your cinematic journey awaits.</p>
+    <a href="cinevous.html" class="btn-primary">Open Cinevous</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">CINEVOUS</div>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#fantasy">Fantasy</a>
+      <a href="cinevous.html">App</a>
+      <a href="#">About</a>
+    </div>
+  </footer>
+</body>
+</html>
