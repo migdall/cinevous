@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Film } from '../types'
+import type { Film, Rubric } from '../types'
 import { genres } from '../data/mockData'
 
 interface FilmLogModalProps {
@@ -7,12 +7,12 @@ interface FilmLogModalProps {
   onClose: () => void
   onSave: (film: Omit<Film, 'id' | 'loggedAt'>) => void
   editingFilm?: Film | null
+  rubrics: Rubric[]
 }
 
-const moods = ['warm', 'melancholy', 'joyful', 'reflective', 'dreamy', 'profound', 'tense', 'hopeful']
-const decades = ['1920s', '1930s', '1940s', '1950s', '1960s', '1970s', '1980s', '1990s', '2000s', '2010s', '2020s']
+const moods = ['warm', 'melancholy', 'thrilled', 'reflective', 'joyful', 'unsettled']
 
-function FilmLogModal({ isOpen, onClose, onSave, editingFilm }: FilmLogModalProps) {
+function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLogModalProps) {
   const [title, setTitle] = useState(editingFilm?.title || '')
   const [director, setDirector] = useState(editingFilm?.director || '')
   const [year, setYear] = useState(editingFilm?.year || new Date().getFullYear())
@@ -23,17 +23,18 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm }: FilmLogModalProp
   const [isNewDirector, setIsNewDirector] = useState(editingFilm?.isNewDirector || false)
   const [rating, setRating] = useState<number | null>(editingFilm?.rating || null)
   const [review, setReview] = useState(editingFilm?.review || '')
+  const [selectedRubric, setSelectedRubric] = useState<number | null>(null)
 
   if (!isOpen) return null
 
   const handleSave = () => {
-    if (title && director && country) {
+    if (title && director) {
       onSave({
         title,
         director,
         year,
         genre,
-        country,
+        country: country || 'USA',
         decade,
         mood,
         isNewDirector,
@@ -56,292 +57,275 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm }: FilmLogModalProp
     setIsNewDirector(false)
     setRating(null)
     setReview('')
+    setSelectedRubric(null)
     onClose()
   }
 
   return (
     <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
-        <h2>{editingFilm ? 'Edit Film' : 'Log a Film'}</h2>
+      <div 
+        className="modal-content" 
+        onClick={(e) => e.stopPropagation()} 
+        style={{ 
+          maxWidth: '550px',
+          background: 'rgba(26, 23, 20, 0.98)',
+          border: '1px solid rgba(255, 255, 255, 0.08)'
+        }}
+      >
+        <h2 style={{ 
+          fontSize: '0.75rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'rgba(232, 228, 223, 0.5)',
+          marginBottom: '2rem',
+          fontFamily: "'DM Sans', sans-serif",
+          fontWeight: '400'
+        }}>
+          Log a Film
+        </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          {/* Title */}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
+        {/* Title */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Film title"
+            style={{ 
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '0',
+              padding: '12px 0',
+              color: '#e8e4df',
+              fontSize: '1rem',
               fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Film Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Past Lives"
-              style={{ width: '100%' }}
-              autoFocus
-            />
-          </div>
-
-          {/* Director */}
-          <div>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Director *
-            </label>
-            <input
-              type="text"
-              value={director}
-              onChange={(e) => setDirector(e.target.value)}
-              placeholder="e.g., Celine Song"
-              style={{ width: '100%' }}
-            />
-          </div>
-
-          {/* Year */}
-          <div>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Year
-            </label>
-            <input
-              type="number"
-              value={year}
-              onChange={(e) => setYear(parseInt(e.target.value) || new Date().getFullYear())}
-              min="1890"
-              max={new Date().getFullYear() + 5}
-              style={{ width: '100%' }}
-            />
-          </div>
-
-          {/* Genre */}
-          <div>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Genre
-            </label>
-            <select
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-              style={{ width: '100%' }}
-            >
-              {genres.map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Country */}
-          <div>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Country *
-            </label>
-            <input
-              type="text"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="e.g., USA, France, Japan"
-              style={{ width: '100%' }}
-            />
-          </div>
-
-          {/* Decade */}
-          <div>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Decade
-            </label>
-            <select
-              value={decade}
-              onChange={(e) => setDecade(e.target.value)}
-              style={{ width: '100%' }}
-            >
-              {decades.map(d => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Mood */}
-          <div>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Mood
-            </label>
-            <select
-              value={mood}
-              onChange={(e) => setMood(e.target.value)}
-              style={{ width: '100%' }}
-            >
-              {moods.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* New Director Checkbox */}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ 
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              fontSize: '0.9rem',
-              color: 'rgba(232, 228, 223, 0.8)',
-              cursor: 'pointer',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              <input
-                type="checkbox"
-                checked={isNewDirector}
-                onChange={(e) => setIsNewDirector(e.target.checked)}
-                style={{ cursor: 'pointer' }}
-              />
-              This is a new director for me
-            </label>
-          </div>
-
-          {/* Rating */}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.75rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Rating (Optional)
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => (
-                <button
-                  key={star}
-                  onClick={() => setRating(rating === star ? null : star)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    fontSize: '1.8rem',
-                    color: rating && star <= rating ? '#d4a574' : 'rgba(255, 255, 255, 0.2)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    padding: '0.25rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!rating || star <= rating) {
-                      e.currentTarget.style.transform = 'scale(1.1)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)'
-                  }}
-                >
-                  ★
-                </button>
-              ))}
-              {rating && (
-                <span style={{ 
-                  marginLeft: '1rem',
-                  fontSize: '0.9rem',
-                  color: 'rgba(232, 228, 223, 0.6)',
-                  fontFamily: "'DM Sans', sans-serif"
-                }}>
-                  {rating}/10
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Review */}
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ 
-              display: 'block',
-              fontSize: '0.75rem',
-              color: 'rgba(232, 228, 223, 0.6)',
-              marginBottom: '0.5rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              fontFamily: "'DM Sans', sans-serif"
-            }}>
-              Review (Optional)
-            </label>
-            <textarea
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
-              placeholder="Your thoughts on this film..."
-              style={{ width: '100%', minHeight: '120px' }}
-            />
-          </div>
+            }}
+            autoFocus
+          />
         </div>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
-          <button
-            onClick={handleClose}
-            className="btn btn-secondary"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!title || !director || !country}
-            className="btn btn-primary"
-            style={{
-              opacity: (!title || !director || !country) ? 0.5 : 1,
-              cursor: (!title || !director || !country) ? 'not-allowed' : 'pointer'
+        {/* Director */}
+        <div style={{ marginBottom: '2rem' }}>
+          <input
+            type="text"
+            value={director}
+            onChange={(e) => setDirector(e.target.value)}
+            placeholder="Director"
+            style={{ 
+              width: '100%',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '0',
+              padding: '12px 0',
+              color: '#e8e4df',
+              fontSize: '1rem',
+              fontFamily: "'DM Sans', sans-serif"
+            }}
+          />
+        </div>
+
+        {/* Genre and Year */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+          <select
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '12px 16px',
+              color: '#e8e4df',
+              fontSize: '0.9rem',
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: '2px'
             }}
           >
-            {editingFilm ? 'Save Changes' : 'Log Film'}
-          </button>
+            {genres.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(parseInt(e.target.value) || new Date().getFullYear())}
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '12px 16px',
+              color: '#e8e4df',
+              fontSize: '0.9rem',
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: '2px'
+            }}
+          />
         </div>
+
+        {/* Mood Selection */}
+        <div style={{ marginBottom: '2rem' }}>
+          <label style={{ 
+            display: 'block',
+            fontSize: '0.65rem',
+            color: 'rgba(232, 228, 223, 0.5)',
+            marginBottom: '1rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            fontFamily: "'DM Sans', sans-serif"
+          }}>
+            How did it make you feel?
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+            {moods.map(m => (
+              <button
+                key={m}
+                onClick={() => setMood(m)}
+                style={{
+                  background: mood === m ? 'rgba(212, 165, 116, 0.15)' : 'transparent',
+                  border: `1px solid ${mood === m ? 'rgba(212, 165, 116, 0.4)' : 'rgba(255, 255, 255, 0.15)'}`,
+                  color: mood === m ? '#d4a574' : 'rgba(232, 228, 223, 0.6)',
+                  padding: '10px 20px',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  fontFamily: "'DM Sans', sans-serif",
+                  borderRadius: '2px',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Rating */}
+        <div style={{ marginBottom: '2rem' }}>
+          <label style={{ 
+            display: 'block',
+            fontSize: '0.65rem',
+            color: 'rgba(232, 228, 223, 0.5)',
+            marginBottom: '1rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            fontFamily: "'DM Sans', sans-serif"
+          }}>
+            Your Rating
+          </label>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => (
+              <button
+                key={star}
+                onClick={() => setRating(rating === star ? null : star)}
+                style={{
+                  background: rating && star <= rating ? 'rgba(212, 165, 116, 0.15)' : 'transparent',
+                  border: `1px solid ${rating && star <= rating ? 'rgba(212, 165, 116, 0.3)' : 'rgba(255, 255, 255, 0.15)'}`,
+                  color: rating && star <= rating ? '#d4a574' : 'rgba(255, 255, 255, 0.3)',
+                  width: '44px',
+                  height: '44px',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  fontFamily: "'DM Sans', sans-serif",
+                  borderRadius: '2px',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {star}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Review */}
+        <div style={{ marginBottom: '2rem' }}>
+          <label style={{ 
+            display: 'block',
+            fontSize: '0.65rem',
+            color: 'rgba(232, 228, 223, 0.5)',
+            marginBottom: '1rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            fontFamily: "'DM Sans', sans-serif"
+          }}>
+            Review (Optional)
+          </label>
+          <textarea
+            value={review}
+            onChange={(e) => setReview(e.target.value)}
+            placeholder="What did you think?"
+            style={{ 
+              width: '100%',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '16px',
+              color: '#e8e4df',
+              fontSize: '0.9rem',
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: '2px',
+              minHeight: '120px',
+              resize: 'vertical'
+            }}
+          />
+        </div>
+
+        {/* Rubric Selection */}
+        <div style={{ marginBottom: '2rem' }}>
+          <label style={{ 
+            display: 'block',
+            fontSize: '0.65rem',
+            color: 'rgba(232, 228, 223, 0.5)',
+            marginBottom: '1rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            fontFamily: "'DM Sans', sans-serif"
+          }}>
+            Rate by Rubric
+          </label>
+          <select
+            value={selectedRubric || ''}
+            onChange={(e) => setSelectedRubric(e.target.value ? parseInt(e.target.value) : null)}
+            style={{ 
+              width: '100%',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              padding: '12px 16px',
+              color: '#e8e4df',
+              fontSize: '0.9rem',
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: '2px'
+            }}
+          >
+            <option value="">No rubric</option>
+            {rubrics.map(rubric => (
+              <option key={rubric.id} value={rubric.id}>{rubric.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleSave}
+          disabled={!title || !director}
+          style={{
+            width: '100%',
+            background: (!title || !director) ? 'rgba(212, 165, 116, 0.3)' : '#d4a574',
+            border: 'none',
+            color: (!title || !director) ? 'rgba(26, 23, 20, 0.5)' : '#1a1714',
+            padding: '16px',
+            fontSize: '0.75rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            cursor: (!title || !director) ? 'not-allowed' : 'pointer',
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: '500',
+            borderRadius: '2px',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          Log Film
+        </button>
       </div>
     </div>
   )

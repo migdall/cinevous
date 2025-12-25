@@ -1,28 +1,43 @@
 import { useState } from 'react'
-import { mockFilms } from '../data/mockData'
-import type { Film } from '../types'
+import { mockFilms, mockRubrics } from '../data/mockData'
+import type { Film, Rubric } from '../types'
 import FilmLogModal from '../components/FilmLogModal'
 
 function Diary() {
   const [films, setFilms] = useState<Film[]>(mockFilms)
-  const [filterPeriod, setFilterPeriod] = useState('all')
-  const [filterRating, setFilterRating] = useState('all')
+  const [rubrics] = useState<Rubric[]>(mockRubrics)
   const [showLogModal, setShowLogModal] = useState(false)
   const [editingFilm, setEditingFilm] = useState<Film | null>(null)
 
   const getStats = () => {
-    const genres = new Set(films.map(f => f.genre))
-    const decades = new Set(films.map(f => f.decade))
-    const countries = new Set(films.map(f => f.country))
+    const countries = new Set(films.map(f => f.country.split('/').map(c => c.trim())).flat())
+    
+    // Check for 4-weekend streak
+    const sortedFilms = [...films].sort((a, b) => b.loggedAt.getTime() - a.loggedAt.getTime())
+    let weekendStreak = 0
+    const today = new Date()
+    
+    for (let i = 0; i < 4; i++) {
+      const weekStart = new Date(today)
+      weekStart.setDate(today.getDate() - (today.getDay() + 7 * i))
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekStart.getDate() + 6)
+      
+      const hasFilmThisWeekend = sortedFilms.some(f => {
+        const logDate = new Date(f.loggedAt)
+        return logDate >= weekStart && logDate <= weekEnd && (logDate.getDay() === 0 || logDate.getDay() === 6)
+      })
+      
+      if (hasFilmThisWeekend) {
+        weekendStreak++
+      } else {
+        break
+      }
+    }
     
     return {
-      totalFilms: films.length,
-      genres: genres.size,
-      decades: decades.size,
-      countries: countries.size,
-      avgRating: films.filter(f => f.rating).length > 0 
-        ? (films.reduce((sum, f) => sum + (f.rating || 0), 0) / films.filter(f => f.rating).length).toFixed(1)
-        : '0'
+      weekendStreak,
+      countries: Array.from(countries).slice(0, 4).join(' · ')
     }
   }
 
@@ -37,162 +52,241 @@ function Diary() {
     setFilms([newFilm, ...films])
   }
 
+  const formatDate = (date: Date) => {
+    const month = date.toLocaleDateString('en-US', { month: 'short' })
+    const day = date.getDate()
+    return `${month} ${day}`
+  }
+
   return (
     <div className="diary-page">
-      <div className="page-header">
-        <h1 className="page-title">Film Diary</h1>
-        <p className="page-subtitle">Your cinematic journey</p>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="card">
-        <h2>Your Stats</h2>
-        <div className="stats-grid">
-          <div className="stat-item">
-            <div className="stat-value">{stats.totalFilms}</div>
-            <div className="stat-label">Films Logged</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{stats.avgRating}</div>
-            <div className="stat-label">Average Rating</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{stats.genres}</div>
-            <div className="stat-label">Genres</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{stats.decades}</div>
-            <div className="stat-label">Decades</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{stats.countries}</div>
-            <div className="stat-label">Countries</div>
-          </div>
+      {/* Header */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start',
+        marginBottom: '3rem'
+      }}>
+        <div>
+          <h1 style={{ 
+            fontSize: '0.65rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: 'rgba(232, 228, 223, 0.4)',
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: '400',
+            marginBottom: '0.5rem'
+          }}>
+            Your Film Diary
+          </h1>
         </div>
       </div>
 
-      {/* Controls */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      {/* Gentle Recognition Cards */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '4rem'
+      }}>
+        {stats.weekendStreak >= 4 && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            borderRadius: '2px',
+            padding: '2rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <h3 style={{ 
+                fontSize: '1.1rem',
+                fontWeight: '400',
+                marginBottom: '0.5rem',
+                fontFamily: "'DM Sans', sans-serif"
+              }}>
+                You've logged films {stats.weekendStreak} weekends in a row
+              </h3>
+              <p style={{ 
+                fontSize: '0.85rem',
+                color: 'rgba(232, 228, 223, 0.5)',
+                fontFamily: "'DM Sans', sans-serif"
+              }}>
+                A nice rhythm you've found
+              </p>
+            </div>
+            <div style={{ 
+              fontSize: '2rem',
+              opacity: 0.3
+            }}>
+              🌙
+            </div>
+          </div>
+        )}
+
+        {stats.countries && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            borderRadius: '2px',
+            padding: '2rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <h3 style={{ 
+                fontSize: '1.1rem',
+                fontWeight: '400',
+                marginBottom: '0.5rem',
+                fontFamily: "'DM Sans', sans-serif"
+              }}>
+                Your viewing has taken you to {films.map(f => f.country.split('/')).flat().length} different countries
+              </h3>
+              <p style={{ 
+                fontSize: '0.85rem',
+                color: 'rgba(232, 228, 223, 0.5)',
+                fontFamily: "'DM Sans', sans-serif"
+              }}>
+                {stats.countries}
+              </p>
+            </div>
+            <div style={{ 
+              fontSize: '2rem',
+              opacity: 0.3
+            }}>
+              🌍
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Films Header */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '2rem'
+      }}>
+        <h2 style={{ 
+          fontSize: '0.65rem',
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+          color: 'rgba(232, 228, 223, 0.4)',
+          fontFamily: "'DM Sans', sans-serif",
+          fontWeight: '400'
+        }}>
+          Recent Films
+        </h2>
         <button 
-          className="btn btn-primary"
+          className="btn btn-secondary"
           onClick={() => {
             setEditingFilm(null)
             setShowLogModal(true)
           }}
+          style={{
+            padding: '10px 24px',
+            fontSize: '0.7rem'
+          }}
         >
-          + Log Film
+          + Log a Film
         </button>
-        
-        <select 
-          className="btn btn-secondary"
-          value={filterPeriod}
-          onChange={(e) => setFilterPeriod(e.target.value)}
-          style={{ cursor: 'pointer' }}
-        >
-          <option value="all">All Time</option>
-          <option value="year">This Year</option>
-          <option value="quarter">This Quarter</option>
-          <option value="month">This Month</option>
-        </select>
-        
-        <select 
-          className="btn btn-secondary"
-          value={filterRating}
-          onChange={(e) => setFilterRating(e.target.value)}
-          style={{ cursor: 'pointer' }}
-        >
-          <option value="all">All Films</option>
-          <option value="rated">Rated Only</option>
-          <option value="unrated">Unrated Only</option>
-        </select>
       </div>
 
       {/* Film Entries */}
       <div>
         {films.map(film => (
-          <div key={film.id} className="card" style={{ marginBottom: '1rem' }}>
+          <div 
+            key={film.id} 
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              borderRadius: '2px',
+              padding: '2.5rem',
+              marginBottom: '1rem',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
-                <h3 style={{ marginBottom: '0.5rem' }}>{film.title}</h3>
+                <h3 style={{ 
+                  fontSize: '1.8rem',
+                  fontWeight: '400',
+                  marginBottom: '0.5rem',
+                  fontFamily: "'Cormorant Garamond', serif"
+                }}>
+                  {film.title}
+                </h3>
                 <div style={{ 
-                  display: 'flex', 
-                  gap: '1rem', 
-                  fontSize: '0.85rem', 
+                  fontSize: '0.9rem', 
                   color: 'rgba(232, 228, 223, 0.5)',
-                  marginBottom: '0.75rem',
+                  marginBottom: '1.5rem',
                   fontFamily: "'DM Sans', sans-serif"
                 }}>
-                  <span>{film.year}</span>
-                  <span>•</span>
-                  <span>{film.director}</span>
-                  <span>•</span>
-                  <span>{film.genre}</span>
-                  <span>•</span>
-                  <span>{film.country}</span>
-                </div>
-                <div style={{ 
-                  fontSize: '0.75rem', 
-                  color: 'rgba(232, 228, 223, 0.4)',
-                  marginBottom: '1rem',
-                  fontFamily: "'DM Sans', sans-serif"
-                }}>
-                  Logged {film.loggedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {film.loggedAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                  {film.director} · {film.year}
                 </div>
                 {film.review && (
                   <p style={{ 
                     fontStyle: 'italic', 
-                    color: 'rgba(232, 228, 223, 0.8)',
+                    color: 'rgba(232, 228, 223, 0.7)',
                     lineHeight: '1.6',
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '1.05rem'
+                    fontSize: '1.05rem',
+                    marginBottom: '1rem'
                   }}>
-                    "{film.review}"
+                    {film.review}
                   </p>
                 )}
               </div>
-              {film.rating && (
+              <div style={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: '1rem',
+                minWidth: '120px'
+              }}>
+                {film.rating && (
+                  <div style={{ 
+                    fontSize: '1.5rem',
+                    color: '#d4a574',
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: '300'
+                  }}>
+                    {film.rating} <span style={{ fontSize: '0.9rem', color: 'rgba(232, 228, 223, 0.3)' }}>/10</span>
+                  </div>
+                )}
                 <div style={{ 
-                  fontSize: '1.8rem', 
-                  color: '#d4a574',
-                  minWidth: '80px',
+                  fontSize: '0.75rem',
+                  color: 'rgba(232, 228, 223, 0.4)',
                   textAlign: 'right',
-                  fontFamily: "'Cormorant Garamond', serif"
+                  fontFamily: "'DM Sans', sans-serif",
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em'
                 }}>
-                  {'★'.repeat(film.rating)}
-                  {film.rating < 10 && <span style={{ color: 'rgba(255,255,255,0.1)' }}>{'★'.repeat(10 - film.rating)}</span>}
+                  {film.genre}
                 </div>
-              )}
+                <div style={{ 
+                  fontSize: '0.75rem',
+                  color: 'rgba(232, 228, 223, 0.3)',
+                  textAlign: 'right',
+                  fontFamily: "'DM Sans', sans-serif"
+                }}>
+                  {formatDate(film.loggedAt)}
+                </div>
+              </div>
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Quarterly Variety Tracker */}
-      <div className="card" style={{ marginTop: '2rem' }}>
-        <h2>Quarterly Variety Tracker</h2>
-        <p style={{ 
-          fontSize: '0.85rem', 
-          color: 'rgba(232, 228, 223, 0.4)',
-          marginTop: '0.5rem',
-          marginBottom: '1.5rem',
-          fontFamily: "'DM Sans', sans-serif"
-        }}>
-          Gentle encouragement to explore diverse cinema
-        </p>
-        <div className="stats-grid">
-          <div className="stat-item">
-            <div className="stat-value">{stats.genres}</div>
-            <div className="stat-label">Genres This Quarter</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{stats.decades}</div>
-            <div className="stat-label">Decades This Quarter</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">{stats.countries}</div>
-            <div className="stat-label">Countries This Quarter</div>
-          </div>
-        </div>
       </div>
 
       {/* Film Log Modal */}
@@ -204,6 +298,7 @@ function Diary() {
         }}
         onSave={handleLogFilm}
         editingFilm={editingFilm}
+        rubrics={rubrics}
       />
     </div>
   )
