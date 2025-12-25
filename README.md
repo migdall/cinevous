@@ -1,73 +1,154 @@
-# React + TypeScript + Vite
+# Cinevous
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Your Personal Film Diary**
 
-Currently, two official plugins are available:
+Cinevous is an elegant film diary and tracking application that celebrates your cinematic journey with gentle recognition and thoughtful design. Unlike traditional film tracking apps focused on ratings and rankings, Cinevous emphasizes mindful viewing and personal reflection.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+### 📔 Film Diary
+- **Log Films** with title, director, year, genre, country, and decade
+- **Mood Tracking** - Capture how each film made you feel (warm, melancholy, thrilled, reflective, joyful, unsettled)
+- **Personal Reviews** - Write your thoughts and reflections
+- **Rating System** - Simple 1-10 rating scale
+- **Gentle Recognition** - Celebrate viewing streaks and diversity milestones without pressure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 📊 Custom Rubrics
+- **Create Custom Rating Systems** for different types of films
+- **Weighted Categories** - Rate films across multiple criteria (Direction, Screenplay, Cinematography, etc.)
+- **Automatic Score Calculation** - Weighted scores computed from category ratings
+- **Multiple Rubrics** - Switch between "Cinephile Standard," "Blockbuster Fun," or your own custom rubrics
+- **Set Default Rubric** - Choose your preferred rating system
 
-## Expanding the ESLint configuration
+### 📝 Lists
+- **Curated Collections** - Organize films into custom lists
+- **Flexible Organization** - "Best of 2023," "Late Night Comfort Watches," or any theme you choose
+- **Visual Film Cards** - Browse your collections with elegance
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🏆 Fantasy Film League
+- **Awards Season Competition** - Compete with friends during awards season
+- **Quarterly Scoring** - Points calculated across Q1-Q4, Golden Globes, and Oscars
+- **Draft System** - Pick films you think will succeed
+- **Leaderboards** - Track rankings and compare performance
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 📈 Progress Tracking
+- **Yearly Stats** - Films watched, average rating, diversity metrics
+- **Monthly Breakdown** - See your viewing patterns throughout the year
+- **Goals** - Set and track personal viewing goals
+- **Diversity Metrics** - Track genres, decades, countries, and directors explored
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 🎯 Quests
+- **Achievements System** - Complete challenges like "World Cinema Explorer" and "Decade Jumper"
+- **Progress Bars** - Visual tracking of quest completion
+- **Rewards** - Unlock badges and achievements
+- **Gentle Encouragement** - Discover diverse cinema without pressure
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🎨 Design Philosophy
+
+Cinevous features:
+- **Elegant Dark Theme** - Easy on the eyes for late-night logging
+- **Beautiful Typography** - Cormorant Garamond for headings, DM Sans for body text
+- **Subtle Animations** - Smooth transitions and hover effects
+- **Gentle Recognition** - Celebrates achievements without gamification pressure
+- **Minimal Distractions** - Focus on your films and reflections
+
+## 🛠️ Tech Stack
+
+- **React 19** - Modern React with hooks
+- **TypeScript** - Type-safe development
+- **Vite** - Fast build tool and dev server
+- **React Router** - Tab-based navigation
+- **Django Backend** - (Backend integration ready)
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development
+The app runs at `http://localhost:5173` (or your configured port) and includes:
+- Hot Module Replacement (HMR)
+- TypeScript type checking
+- ESLint for code quality
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📁 Project Structure
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── components/       # Reusable components (FilmLogModal, RubricModal)
+├── pages/           # Main pages (Diary, Lists, Rubrics, League, Progress, Quests)
+├── types/           # TypeScript interfaces
+├── data/            # Mock data and constants
+├── App.tsx          # Main app component with navigation
+├── App.css          # Global styles
+└── main.tsx         # App entry point
+```
+
+## 🎯 Key Features in Detail
+
+### Film Logging
+Log films with comprehensive details including mood tracking, which captures the emotional experience beyond just a rating. The interface is designed to be quick and intuitive while still capturing meaningful data.
+
+### Rubric System
+Create custom rating rubrics with weighted categories. Perfect for:
+- **Serious Analysis** - Direction (20%), Screenplay (20%), Cinematography (15%), etc.
+- **Entertainment Value** - For blockbusters and popcorn movies
+- **Specific Genres** - Horror-specific criteria, documentary standards, etc.
+
+The weighted score automatically calculates based on category weights, giving you a nuanced rating system.
+
+### Gentle Recognition
+Instead of aggressive gamification, Cinevous celebrates:
+- Viewing consistency (weekend streaks)
+- Cultural diversity (countries explored)
+- Discovery (new directors)
+- Variety (genres and decades)
+
+Achievements appear naturally as you watch films, without pressure or FOMO.
+
+## 🎨 Customization
+
+The app uses CSS custom properties for theming:
+- Background: `#0d0d0d`
+- Primary Accent: `#d4a574` (warm gold)
+- Text: `#e8e4df` (soft white)
+- Borders: `rgba(255, 255, 255, 0.05-0.15)`
+
+## 📝 Future Enhancements
+
+- **Social Features** - Share lists and reviews with friends
+- **Advanced Stats** - More detailed analytics and visualizations
+- **Import/Export** - Letterboxd import, CSV export
+- **Mobile App** - Native iOS/Android apps
+- **Watchlist** - Track films you want to see
+- **Streaming Integration** - See where films are available
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is the property of Musty Creative LLC.
+
+## 🙏 Credits
+
+Created by Jesús Noland for Musty Creative
+
+---
+
+**Cinevous** - *Your Film Diary*
