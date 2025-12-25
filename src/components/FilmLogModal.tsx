@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { Film, Rubric } from '../types'
 import { genres } from '../data/mockData'
 
@@ -32,7 +32,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
   const calculateWeightedScore = () => {
     if (!selectedRubric) return 0
     
-    let totalScore = 0
+    let totalScore = rating ? rating : 0
     selectedRubric.categories.forEach(category => {
       const rating = rubricRatings[category.id] || 0
       totalScore += (rating * category.weight) / 100
@@ -41,14 +41,13 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
     return totalScore.toFixed(1)
   }
 
-  // Reset rubric ratings when rubric changes
-  useEffect(() => {
-    if (selectedRubricId) {
-      setRubricRatings({})
-    }
-  }, [selectedRubricId])
-
   if (!isOpen) return null
+
+  const handleRubricChange = (rubricId: string) => {
+    const newRubricId = rubricId ? parseInt(rubricId) : null
+    setSelectedRubricId(newRubricId)
+    setRubricRatings({}) // Reset ratings when changing rubric
+  }
 
   const handleSave = () => {
     if (title && director) {
@@ -316,7 +315,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
           </label>
           <select
             value={selectedRubricId || ''}
-            onChange={(e) => setSelectedRubricId(e.target.value ? parseInt(e.target.value) : null)}
+            onChange={(e) => handleRubricChange(e.target.value)}
             style={{ 
               width: '100%',
               background: 'rgba(255, 255, 255, 0.05)',
