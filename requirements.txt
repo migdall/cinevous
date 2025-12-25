@@ -1,0 +1,6 @@
+
+Django
+django-vite
+djangorestframework
+django-cors-headers
+
