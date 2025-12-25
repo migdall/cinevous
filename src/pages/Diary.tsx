@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { mockFilms } from '../data/mockData'
 import type { Film } from '../types'
+import FilmLogModal from '../components/FilmLogModal'
 
 function Diary() {
-  const [films] = useState<Film[]>(mockFilms)
+  const [films, setFilms] = useState<Film[]>(mockFilms)
   const [filterPeriod, setFilterPeriod] = useState('all')
   const [filterRating, setFilterRating] = useState('all')
+  const [showLogModal, setShowLogModal] = useState(false)
+  const [editingFilm, setEditingFilm] = useState<Film | null>(null)
 
   const getStats = () => {
     const genres = new Set(films.map(f => f.genre))
@@ -24,6 +27,15 @@ function Diary() {
   }
 
   const stats = getStats()
+
+  const handleLogFilm = (filmData: Omit<Film, 'id' | 'loggedAt'>) => {
+    const newFilm: Film = {
+      ...filmData,
+      id: Date.now(),
+      loggedAt: new Date()
+    }
+    setFilms([newFilm, ...films])
+  }
 
   return (
     <div className="diary-page">
@@ -61,7 +73,15 @@ function Diary() {
 
       {/* Controls */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <button className="btn btn-primary">+ Log Film</button>
+        <button 
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingFilm(null)
+            setShowLogModal(true)
+          }}
+        >
+          + Log Film
+        </button>
         
         <select 
           className="btn btn-secondary"
@@ -174,6 +194,17 @@ function Diary() {
           </div>
         </div>
       </div>
+
+      {/* Film Log Modal */}
+      <FilmLogModal
+        isOpen={showLogModal}
+        onClose={() => {
+          setShowLogModal(false)
+          setEditingFilm(null)
+        }}
+        onSave={handleLogFilm}
+        editingFilm={editingFilm}
+      />
     </div>
   )
 }
