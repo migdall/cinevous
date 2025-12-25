@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Film, Rubric } from '../types'
 import { genres } from '../data/mockData'
 
@@ -23,7 +23,30 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
   const [isNewDirector, setIsNewDirector] = useState(editingFilm?.isNewDirector || false)
   const [rating, setRating] = useState<number | null>(editingFilm?.rating || null)
   const [review, setReview] = useState(editingFilm?.review || '')
-  const [selectedRubric, setSelectedRubric] = useState<number | null>(null)
+  const [selectedRubricId, setSelectedRubricId] = useState<number | null>(null)
+  const [rubricRatings, setRubricRatings] = useState<{ [categoryId: number]: number }>({})
+
+  const selectedRubric = rubrics.find(r => r.id === selectedRubricId)
+
+  // Calculate weighted score
+  const calculateWeightedScore = () => {
+    if (!selectedRubric) return 0
+    
+    let totalScore = 0
+    selectedRubric.categories.forEach(category => {
+      const rating = rubricRatings[category.id] || 0
+      totalScore += (rating * category.weight) / 100
+    })
+    
+    return totalScore.toFixed(1)
+  }
+
+  // Reset rubric ratings when rubric changes
+  useEffect(() => {
+    if (selectedRubricId) {
+      setRubricRatings({})
+    }
+  }, [selectedRubricId])
 
   if (!isOpen) return null
 
@@ -40,7 +63,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
         isNewDirector,
         rating,
         review,
-        rubricRatings: {}
+        rubricRatings: selectedRubricId ? { [selectedRubricId]: rubricRatings } : {}
       })
       handleClose()
     }
@@ -57,8 +80,16 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
     setIsNewDirector(false)
     setRating(null)
     setReview('')
-    setSelectedRubric(null)
+    setSelectedRubricId(null)
+    setRubricRatings({})
     onClose()
+  }
+
+  const handleRubricCategoryRating = (categoryId: number, ratingValue: number) => {
+    setRubricRatings(prev => ({
+      ...prev,
+      [categoryId]: prev[categoryId] === ratingValue ? 0 : ratingValue
+    }))
   }
 
   return (
@@ -67,7 +98,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
         className="modal-content" 
         onClick={(e) => e.stopPropagation()} 
         style={{ 
-          maxWidth: '550px',
+          maxWidth: selectedRubric ? '650px' : '550px',
           background: 'rgba(26, 23, 20, 0.98)',
           border: '1px solid rgba(255, 255, 255, 0.08)'
         }}
@@ -271,7 +302,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
         </div>
 
         {/* Rubric Selection */}
-        <div style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: selectedRubric ? '2rem' : '2rem' }}>
           <label style={{ 
             display: 'block',
             fontSize: '0.65rem',
@@ -284,8 +315,8 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
             Rate by Rubric
           </label>
           <select
-            value={selectedRubric || ''}
-            onChange={(e) => setSelectedRubric(e.target.value ? parseInt(e.target.value) : null)}
+            value={selectedRubricId || ''}
+            onChange={(e) => setSelectedRubricId(e.target.value ? parseInt(e.target.value) : null)}
             style={{ 
               width: '100%',
               background: 'rgba(255, 255, 255, 0.05)',
@@ -299,10 +330,105 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
           >
             <option value="">No rubric</option>
             {rubrics.map(rubric => (
-              <option key={rubric.id} value={rubric.id}>{rubric.name}</option>
+              <option key={rubric.id} value={rubric.id}>
+                {rubric.name} {rubric.isDefault ? '(default)' : ''}
+              </option>
             ))}
           </select>
         </div>
+
+        {/* Rubric Rating Interface */}
+        {selectedRubric && (
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '2px',
+            padding: '2rem',
+            marginBottom: '2rem'
+          }}>
+            {/* Weighted Score */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '2rem',
+              paddingBottom: '1.5rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+            }}>
+              <div style={{
+                fontSize: '0.85rem',
+                color: 'rgba(232, 228, 223, 0.6)',
+                fontFamily: "'DM Sans', sans-serif"
+              }}>
+                Weighted Score
+              </div>
+              <div style={{
+                fontSize: '2rem',
+                color: '#d4a574',
+                fontFamily: "'Cormorant Garamond', serif",
+                fontWeight: '300'
+              }}>
+                {calculateWeightedScore()} <span style={{ fontSize: '1.2rem', color: 'rgba(232, 228, 223, 0.3)' }}>/10</span>
+              </div>
+            </div>
+
+            {/* Category Ratings */}
+            {selectedRubric.categories.map(category => (
+              <div key={category.id} style={{ marginBottom: '2rem' }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '0.75rem'
+                }}>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    color: '#e8e4df',
+                    fontFamily: "'DM Sans', sans-serif"
+                  }}>
+                    {category.name}
+                  </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(232, 228, 223, 0.4)',
+                    fontFamily: "'DM Sans', sans-serif"
+                  }}>
+                    {category.weight}%
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => {
+                    const isSelected = rubricRatings[category.id] === num
+                    return (
+                      <button
+                        key={num}
+                        onClick={() => handleRubricCategoryRating(category.id, num)}
+                        style={{
+                          background: isSelected ? '#d4a574' : 'rgba(255, 255, 255, 0.05)',
+                          border: `1px solid ${isSelected ? '#d4a574' : 'rgba(255, 255, 255, 0.1)'}`,
+                          color: isSelected ? '#1a1714' : 'rgba(232, 228, 223, 0.5)',
+                          width: '40px',
+                          height: '40px',
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          fontFamily: "'DM Sans', sans-serif",
+                          borderRadius: '2px',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: isSelected ? '500' : '400'
+                        }}
+                      >
+                        {num}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Submit Button */}
         <button
