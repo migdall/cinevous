@@ -4,10 +4,11 @@ import './App.css'
 import Diary from './pages/Diary'
 import Lists from './pages/Lists'
 import League from './pages/League'
+import Rubrics from './pages/Rubrics'
 import Stats from './pages/Stats'
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'diary' | 'lists' | 'league' | 'stats'>('diary')
+  const [activeTab, setActiveTab] = useState<'diary' | 'lists' | 'league' | 'rubrics' | 'stats'>('diary')
 
   return (
     <Router basename="/app">
@@ -45,6 +46,15 @@ function App() {
               </li>
               <li>
                 <a 
+                  href="#rubrics" 
+                  className={activeTab === 'rubrics' ? 'active' : ''}
+                  onClick={(e) => { e.preventDefault(); setActiveTab('rubrics'); }}
+                >
+                  Rubrics
+                </a>
+              </li>
+              <li>
+                <a 
                   href="#stats" 
                   className={activeTab === 'stats' ? 'active' : ''}
                   onClick={(e) => { e.preventDefault(); setActiveTab('stats'); }}
@@ -60,6 +70,7 @@ function App() {
           {activeTab === 'diary' && <Diary />}
           {activeTab === 'lists' && <Lists />}
           {activeTab === 'league' && <League />}
+          {activeTab === 'rubrics' && <Rubrics />}
           {activeTab === 'stats' && <Stats />}
         </main>
       </div>

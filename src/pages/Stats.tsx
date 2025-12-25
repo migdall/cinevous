@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { mockFilms, mockRubrics } from '../data/mockData'
 import type { Film, Rubric } from '../types'
+import RubricModal from '../components/RubricModal'
 
 function Stats() {
   const [films] = useState<Film[]>(mockFilms)
-  const [rubrics] = useState<Rubric[]>(mockRubrics)
+  const [rubrics, setRubrics] = useState<Rubric[]>(mockRubrics)
+  const [showRubricModal, setShowRubricModal] = useState(false)
+  const [editingRubric, setEditingRubric] = useState<Rubric | null>(null)
 
   const getStats = () => {
     const genres = new Set(films.map(f => f.genre))
@@ -46,6 +49,45 @@ function Stats() {
   }
 
   const genreBreakdown = getGenreBreakdown()
+
+  const handleCreateRubric = (rubricData: Omit<Rubric, 'id'>) => {
+    const newRubric: Rubric = {
+      ...rubricData,
+      id: Date.now()
+    }
+    setRubrics([...rubrics, newRubric])
+  }
+
+  const handleEditRubric = (rubric: Rubric) => {
+    setEditingRubric(rubric)
+    setShowRubricModal(true)
+  }
+
+  const handleSaveRubric = (rubricData: Omit<Rubric, 'id'>) => {
+    if (editingRubric) {
+      setRubrics(rubrics.map(r => 
+        r.id === editingRubric.id 
+          ? { ...rubricData, id: editingRubric.id }
+          : r
+      ))
+      setEditingRubric(null)
+    } else {
+      handleCreateRubric(rubricData)
+    }
+  }
+
+  const handleDeleteRubric = (id: number) => {
+    if (confirm('Are you sure you want to delete this rubric?')) {
+      setRubrics(rubrics.filter(r => r.id !== id))
+    }
+  }
+
+  const handleSetDefaultRubric = (id: number) => {
+    setRubrics(rubrics.map(r => ({
+      ...r,
+      isDefault: r.id === id
+    })))
+  }
 
   return (
     <div className="stats-page">
@@ -152,74 +194,133 @@ function Stats() {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h2>Your Rubrics</h2>
-          <button className="btn btn-secondary">+ Create Rubric</button>
+          <button 
+            className="btn btn-primary"
+            onClick={() => {
+              setEditingRubric(null)
+              setShowRubricModal(true)
+            }}
+          >
+            + Create Rubric
+          </button>
         </div>
-        <div>
-          {rubrics.map(rubric => (
-            <div 
-              key={rubric.id}
-              style={{
-                padding: '1.5rem',
-                background: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '2px',
-                marginBottom: '1rem'
-              }}
+        
+        {rubrics.length === 0 ? (
+          <div className="empty-state" style={{ padding: '3rem 2rem' }}>
+            <h3>No rubrics yet</h3>
+            <p>Create custom rubrics to rate films with specific criteria</p>
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowRubricModal(true)}
             >
-              <div style={{ marginBottom: '1rem' }}>
-                <h3 style={{ marginBottom: '0.5rem' }}>
-                  {rubric.name}
-                  {rubric.isDefault && (
-                    <span style={{ 
-                      marginLeft: '0.75rem',
-                      fontSize: '0.65rem',
-                      color: '#d4a574',
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
+              Create Your First Rubric
+            </button>
+          </div>
+        ) : (
+          <div>
+            {rubrics.map(rubric => (
+              <div 
+                key={rubric.id}
+                style={{
+                  padding: '1.5rem',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: '2px',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ marginBottom: '0.5rem' }}>
+                      {rubric.name}
+                      {rubric.isDefault && (
+                        <span style={{ 
+                          marginLeft: '0.75rem',
+                          fontSize: '0.65rem',
+                          color: '#d4a574',
+                          letterSpacing: '0.1em',
+                          textTransform: 'uppercase',
+                          fontFamily: "'DM Sans', sans-serif"
+                        }}>
+                          Default
+                        </span>
+                      )}
+                    </h3>
+                    <p style={{ 
+                      fontSize: '0.85rem', 
+                      color: 'rgba(232, 228, 223, 0.5)',
                       fontFamily: "'DM Sans', sans-serif"
                     }}>
-                      Default
-                    </span>
-                  )}
-                </h3>
-                <p style={{ 
-                  fontSize: '0.85rem', 
-                  color: 'rgba(232, 228, 223, 0.5)',
-                  fontFamily: "'DM Sans', sans-serif"
-                }}>
-                  {rubric.description}
-                </p>
-              </div>
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                gap: '0.75rem'
-              }}>
-                {rubric.categories.map(category => (
-                  <div 
-                    key={category.id}
-                    style={{
-                      padding: '0.75rem',
-                      background: 'rgba(255, 255, 255, 0.02)',
-                      border: '1px solid rgba(255, 255, 255, 0.05)',
-                      borderRadius: '2px',
-                      fontSize: '0.8rem',
-                      fontFamily: "'DM Sans', sans-serif"
-                    }}
-                  >
-                    <div style={{ marginBottom: '0.25rem' }}>{category.name}</div>
-                    <div style={{ 
-                      fontSize: '0.7rem',
-                      color: 'rgba(232, 228, 223, 0.4)'
-                    }}>
-                      {category.weight}% weight
-                    </div>
+                      {rubric.description}
+                    </p>
                   </div>
-                ))}
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {!rubric.isDefault && (
+                      <button
+                        onClick={() => handleSetDefaultRubric(rubric.id)}
+                        className="btn btn-secondary"
+                        style={{ padding: '8px 16px', fontSize: '0.7rem' }}
+                      >
+                        Set Default
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleEditRubric(rubric)}
+                      className="btn btn-secondary"
+                      style={{ padding: '8px 16px', fontSize: '0.7rem' }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteRubric(rubric.id)}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid rgba(255, 99, 99, 0.3)',
+                        color: 'rgba(255, 99, 99, 0.7)',
+                        padding: '8px 16px',
+                        fontSize: '0.7rem',
+                        cursor: 'pointer',
+                        fontFamily: "'DM Sans', sans-serif",
+                        borderRadius: '2px',
+                        letterSpacing: '0.15em',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                  gap: '0.75rem'
+                }}>
+                  {rubric.categories.map(category => (
+                    <div 
+                      key={category.id}
+                      style={{
+                        padding: '0.75rem',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderRadius: '2px',
+                        fontSize: '0.8rem',
+                        fontFamily: "'DM Sans', sans-serif"
+                      }}
+                    >
+                      <div style={{ marginBottom: '0.25rem' }}>{category.name}</div>
+                      <div style={{ 
+                        fontSize: '0.7rem',
+                        color: 'rgba(232, 228, 223, 0.4)'
+                      }}>
+                        {category.weight}% weight
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Gentle Recognition */}
@@ -266,8 +367,30 @@ function Stats() {
               🌟 Discovered {stats.newDirectors} new directors
             </div>
           )}
+          {rubrics.length >= 1 && (
+            <div style={{ 
+              padding: '1rem 1.5rem',
+              background: 'rgba(212, 165, 116, 0.05)',
+              border: '1px solid rgba(212, 165, 116, 0.2)',
+              borderRadius: '2px',
+              fontFamily: "'DM Sans', sans-serif"
+            }}>
+              📊 Created {rubrics.length} custom {rubrics.length === 1 ? 'rubric' : 'rubrics'}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Rubric Modal */}
+      <RubricModal
+        isOpen={showRubricModal}
+        onClose={() => {
+          setShowRubricModal(false)
+          setEditingRubric(null)
+        }}
+        onSave={handleSaveRubric}
+        editingRubric={editingRubric}
+      />
     </div>
   )
 }
