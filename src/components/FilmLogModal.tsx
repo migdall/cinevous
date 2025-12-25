@@ -32,13 +32,27 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
   const calculateWeightedScore = () => {
     if (!selectedRubric) return 0
     
+    let totalWeightedScore = 0
+    let totalWeight = 0
     let totalScore = rating ? rating : 0
     selectedRubric.categories.forEach(category => {
-      const rating = rubricRatings[category.id] || 0
-      totalScore += (rating * category.weight) / 100
+
+      const rating = rubricRatings[category.id]
+      if (rating) {
+        totalWeightedScore += rating * category.weight
+        totalWeight += category.weight
+      }
+      
     })
-    
-    return totalScore.toFixed(1)
+
+    // Return null if no categories were rated
+    if (totalWeight === 0) {
+      return totalScore
+    }
+
+    // Calculate and round to 1 decimal place
+    totalScore = totalWeightedScore / totalWeight
+    return Math.round(totalScore * 10) / 10
   }
 
   if (!isOpen) return null
