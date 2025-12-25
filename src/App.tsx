@@ -1,11 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { useState } from 'react'
+import { BrowserRouter as Router } from 'react-router-dom'
 import './App.css'
-import Home from './pages/Home'
 import Diary from './pages/Diary'
-import Discover from './pages/Discover'
-import Profile from './pages/Profile'
+import Lists from './pages/Lists'
+import League from './pages/League'
+import Stats from './pages/Stats'
 
 function App() {
+  const [activeTab, setActiveTab] = useState<'diary' | 'lists' | 'league' | 'stats'>('diary')
+
   return (
     <Router basename="/app">
       <div className="app">
@@ -13,21 +16,51 @@ function App() {
           <div className="nav-container">
             <h1 className="logo">Cinevous</h1>
             <ul className="nav-links">
-              <li><Link to="/">Home</Link></li>
-              <li><Link to="/diary">Diary</Link></li>
-              <li><Link to="/discover">Discover</Link></li>
-              <li><Link to="/profile">Profile</Link></li>
+              <li>
+                <a 
+                  href="#diary" 
+                  className={activeTab === 'diary' ? 'active' : ''}
+                  onClick={(e) => { e.preventDefault(); setActiveTab('diary'); }}
+                >
+                  Diary
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#lists" 
+                  className={activeTab === 'lists' ? 'active' : ''}
+                  onClick={(e) => { e.preventDefault(); setActiveTab('lists'); }}
+                >
+                  Lists
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#league" 
+                  className={activeTab === 'league' ? 'active' : ''}
+                  onClick={(e) => { e.preventDefault(); setActiveTab('league'); }}
+                >
+                  Fantasy League
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#stats" 
+                  className={activeTab === 'stats' ? 'active' : ''}
+                  onClick={(e) => { e.preventDefault(); setActiveTab('stats'); }}
+                >
+                  Stats
+                </a>
+              </li>
             </ul>
           </div>
         </nav>
 
         <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/diary" element={<Diary />} />
-            <Route path="/discover" element={<Discover />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
+          {activeTab === 'diary' && <Diary />}
+          {activeTab === 'lists' && <Lists />}
+          {activeTab === 'league' && <League />}
+          {activeTab === 'stats' && <Stats />}
         </main>
       </div>
     </Router>
