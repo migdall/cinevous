@@ -21,7 +21,7 @@ class StoryLover(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "agents"
+        db_table = "storylovers"
 
     def __str__(self):
         return self.display_name
@@ -167,14 +167,17 @@ class FilmLog(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.story_lover.story_lovername} - {self.film.title}"
+        return f"{self.story_lover.display_name} - {self.film.title}"
 
     def save(self, *args, **kwargs):
-        # Check if this is a new director for the story_lover
-        if not self.pk:  # Only on creation
+        # Check if this is a new entry (not yet in database)
+        is_new = self._state.adding
+        
+        if is_new:
+            # Check if this is a new director for the story_lover
             existing_directors = FilmLog.objects.filter(
                 story_lover=self.story_lover
-            ).values_list('film__director', flat=True)
+            ).values_list('film__director', flat=True).distinct()
             self.is_new_director = self.film.director not in existing_directors
             
             # Check if rewatch
