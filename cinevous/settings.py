@@ -143,6 +143,10 @@ STATICFILES_DIRS = [
     BASE_DIR / 'dist',
 ]
 
+LOGIN_URL = '/login/'
+
+LOGIN_REDIRECT_URL = '/app/'
+
 # CORS (for development)
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
