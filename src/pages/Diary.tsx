@@ -41,15 +41,65 @@ function Diary() {
     }
   }
 
+  function getCsrfToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [key, value] = cookie.trim().split('=');
+      if (key === name) return value;
+    }
+    return '';
+  }
+
   const stats = getStats()
 
-  const handleLogFilm = (filmData: Omit<Film, 'id' | 'loggedAt'>) => {
-    const newFilm: Film = {
-      ...filmData,
-      id: Date.now(),
-      loggedAt: new Date()
+  const handleLogFilm = async (filmData: Omit<Film, 'id' | 'loggedAt'>) => {
+    try {
+      // POST to Django API
+      const response = await fetch('/api/filmlogs/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: filmData.title,
+          director: filmData.director,
+          year: filmData.year,
+          genre: filmData.genre,
+          country: filmData.country,
+          decade: filmData.decade,
+          mood: filmData.mood,
+          is_new_director: filmData.isNewDirector,
+          rating: filmData.rating,
+          review: filmData.review,
+          rubric_ratings: filmData.rubricRatings,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save film log')
+      }
+
+      const savedFilm = await response.json()
+      
+      // Add the new film to the UI
+      const newFilm: Film = {
+        ...filmData,
+        id: savedFilm.id || Date.now(),
+        loggedAt: savedFilm.watched_at ? new Date(savedFilm.watched_at) : new Date()
+      }
+      setFilms([newFilm, ...films])
+      
+      // Close modal
+      setShowLogModal(false)
+      
+    } catch (error) {
+      console.error('Error saving film log:', error)
+      // You might want to show an error message to the user here
+      alert('Failed to save film log. Please try again.')
     }
-    setFilms([newFilm, ...films])
   }
 
   const formatDate = (date: Date) => {
