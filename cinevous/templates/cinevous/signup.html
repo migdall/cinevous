@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — Cinevous</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    ::selection { background: rgba(212,165,116,0.3); }
+    
+    body {
+      min-height: 100vh;
+      background: #0d0d0d;
+      color: #e8e4df;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* Grain overlay */
+    .grain {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Left side - Branding */
+    .brand-side {
+      flex: 1;
+      background: linear-gradient(135deg, #1a1714 0%, #0d0d0d 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-side::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(212,165,116,0.08) 0%, transparent 50%);
+      animation: ambientGlow 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientGlow {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(5%, 10%); }
+    }
+
+    .brand-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .brand-logo {
+      font-size: 2.5rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: #f5f2ed;
+      margin-bottom: 24px;
+    }
+
+    .brand-tagline {
+      font-size: 1.3rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+      margin-bottom: 60px;
+    }
+
+    .brand-features {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: left;
+    }
+
+    .brand-feature {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem;
+    }
+
+    .brand-feature-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(212,165,116,0.1);
+      border: 1px solid rgba(212,165,116,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d4a574;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* Right side - Signup Form */
+    .form-side {
+      width: 500px;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #1a1714 0%, #151210 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 100px 60px 80px;
+      position: relative;
+      border-left: 1px solid rgba(255,255,255,0.04);
+      overflow-y: auto;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .form-header {
+      margin-bottom: 40px;
+    }
+
+    .form-header h1 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: #f5f2ed;
+      margin-bottom: 8px;
+    }
+
+    .form-header p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .form-header p a {
+      color: #d4a574;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .form-header p a:hover {
+      color: #e8bc8a;
+    }
+
+    /* Form Styles */
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .form-group input {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 2px;
+      padding: 16px 20px;
+      color: #f5f2ed;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255,255,255,0.25);
+    }
+
+    .form-group input:focus {
+      border-color: rgba(212,165,116,0.5);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Password strength indicator */
+    .password-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .password-strength-bar {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      transition: background 0.3s ease;
+    }
+
+    .password-strength-bar.weak { background: #c97070; }
+    .password-strength-bar.medium { background: #c9a870; }
+    .password-strength-bar.strong { background: #7ec970; }
+
+    .password-hint {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 6px;
+    }
+
+    /* Terms checkbox */
+    .terms-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .terms-group input[type="checkbox"] {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .terms-group input[type="checkbox"]:checked {
+      background: #d4a574;
+      border-color: #d4a574;
+    }
+
+    .terms-group input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #1a1714;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    .terms-group label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+
+    .terms-group label a {
+      color: #d4a574;
+      text-decoration: none;
+    }
+
+    .terms-group label a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-signup {
+      background: #d4a574;
+      color: #1a1714;
+      border: none;
+      padding: 18px 32px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+    }
+
+    .btn-signup:hover {
+      background: #c9956c;
+      transform: translateY(-2px);
+    }
+
+    .btn-signup:active {
+      transform: translateY(0);
+    }
+
+    .btn-signup:disabled {
+      background: rgba(212,165,116,0.3);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Footer */
+    .form-footer {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .form-footer p {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+    }
+
+    .form-footer a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+    }
+
+    .form-footer a:hover {
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Back to home link */
+    .back-home {
+      position: fixed;
+      top: 30px;
+      right: 420px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      z-index: 100;
+    }
+
+    .back-home:hover {
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Error state */
+    .form-group.error input {
+      border-color: rgba(220, 100, 100, 0.5);
+    }
+
+    .form-group .error-message {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      color: rgba(220, 100, 100, 0.8);
+      margin-top: 4px;
+    }
+
+    /* Success state */
+    .form-group.success input {
+      border-color: rgba(126, 201, 112, 0.5);
+    }
+
+    /* Loading state */
+    .btn-signup.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .btn-signup.loading::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top-color: #1a1714;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 10px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+
+      .brand-side {
+        display: none;
+      }
+
+      .form-side {
+        width: 100%;
+        min-height: 100vh;
+        border-left: none;
+        padding: 100px 30px 60px;
+      }
+
+      .form-container {
+        max-width: 400px;
+      }
+
+      .back-home {
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        right: auto;
+      }
+
+      .form-row {
+        flex-direction: column;
+        gap: 24px;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-container {
+      animation: fadeIn 0.6s ease both;
+    }
+
+    .brand-content {
+      animation: fadeIn 0.8s ease 0.2s both;
+    }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <!-- Left Side - Branding -->
+  <div class="brand-side">
+    <div class="brand-content">
+      <h1 class="brand-logo">CINEVOUS</h1>
+      <p class="brand-tagline">Your film diary, reimagined. Log films, build custom rubrics, and compete in fantasy leagues.</p>
+      
+      <div class="brand-features">
+        <div class="brand-feature">
+          <div class="brand-feature-icon">◐</div>
+          <span>Gentle recognition, never shame</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">✦</div>
+          <span>Custom rating rubrics</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">◎</div>
+          <span>Track your cinematic variety</span>
+        </div>
+        <div class="brand-feature">
+          <div class="brand-feature-icon">◆</div>
+          <span>Fantasy film leagues</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side - Signup Form -->
+  <div class="form-side">
+    <a href="index.html" class="back-home">← Back to home</a>
+    
+    <div class="form-container">
+      <div class="form-header">
+        <h1>Create your account</h1>
+        <p>Already have an account? <a href="login.html">Sign in</a></p>
+      </div>
+
+      <form class="signup-form" id="signupForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              name="firstName" 
+              placeholder="Jane"
+              required
+              autocomplete="given-name"
+            />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              name="lastName" 
+              placeholder="Doe"
+              required
+              autocomplete="family-name"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            placeholder="janedoe"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            placeholder="jane@example.com"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="••••••••••"
+            required
+            autocomplete="new-password"
+          />
+          <div class="password-strength">
+            <div class="password-strength-bar" id="strength1"></div>
+            <div class="password-strength-bar" id="strength2"></div>
+            <div class="password-strength-bar" id="strength3"></div>
+            <div class="password-strength-bar" id="strength4"></div>
+          </div>
+          <p class="password-hint">Use 8+ characters with a mix of letters, numbers & symbols</p>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            placeholder="••••••••••"
+            required
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="terms-group">
+          <input type="checkbox" id="terms" name="terms" required />
+          <label for="terms">
+            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-signup">Create Account</button>
+      </form>
+
+      <div class="form-footer">
+        <p>Join thousands of film lovers already using Cinevous</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('signupForm');
+    const submitBtn = form.querySelector('.btn-signup');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+
+    // Password strength checker
+    passwordInput.addEventListener('input', (e) => {
+      const password = e.target.value;
+      const strength = calculatePasswordStrength(password);
+      updateStrengthIndicator(strength);
+    });
+
+    function calculatePasswordStrength(password) {
+      let score = 0;
+      
+      if (password.length >= 8) score++;
+      if (password.length >= 12) score++;
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+      if (/\d/.test(password)) score++;
+      if (/[^a-zA-Z0-9]/.test(password)) score++;
+      
+      return Math.min(score, 4);
+    }
+
+    function updateStrengthIndicator(strength) {
+      const bars = ['strength1', 'strength2', 'strength3', 'strength4'];
+      const classes = ['weak', 'weak', 'medium', 'strong'];
+      
+      bars.forEach((barId, index) => {
+        const bar = document.getElementById(barId);
+        bar.className = 'password-strength-bar';
+        
+        if (index < strength) {
+          bar.classList.add(classes[strength - 1]);
+        }
+      });
+    }
+
+    // Confirm password validation
+    confirmPasswordInput.addEventListener('input', () => {
+      const formGroup = confirmPasswordInput.closest('.form-group');
+      formGroup.classList.remove('error', 'success');
+      
+      if (confirmPasswordInput.value && passwordInput.value) {
+        if (confirmPasswordInput.value === passwordInput.value) {
+          formGroup.classList.add('success');
+        } else if (confirmPasswordInput.value.length >= passwordInput.value.length) {
+          formGroup.classList.add('error');
+        }
+      }
+    });
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Get form data
+      const firstName = form.firstName.value.trim();
+      const lastName = form.lastName.value.trim();
+      const username = form.username.value.trim();
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const confirmPassword = form.confirmPassword.value;
+      const termsAccepted = form.terms.checked;
+
+      // Clear previous errors
+      document.querySelectorAll('.form-group.error').forEach(el => {
+        el.classList.remove('error');
+        const errorMsg = el.querySelector('.error-message');
+        if (errorMsg) errorMsg.remove();
+      });
+
+      // Validation
+      let hasError = false;
+
+      if (!firstName) {
+        showError('firstName', 'First name is required');
+        hasError = true;
+      }
+
+      if (!lastName) {
+        showError('lastName', 'Last name is required');
+        hasError = true;
+      }
+
+      if (!username) {
+        showError('username', 'Username is required');
+        hasError = true;
+      } else if (username.length < 3) {
+        showError('username', 'Username must be at least 3 characters');
+        hasError = true;
+      } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showError('username', 'Username can only contain letters, numbers, and underscores');
+        hasError = true;
+      }
+
+      if (!email) {
+        showError('email', 'Email is required');
+        hasError = true;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('email', 'Please enter a valid email');
+        hasError = true;
+      }
+
+      if (!password) {
+        showError('password', 'Password is required');
+        hasError = true;
+      } else if (password.length < 8) {
+        showError('password', 'Password must be at least 8 characters');
+        hasError = true;
+      }
+
+      if (password !== confirmPassword) {
+        showError('confirmPassword', 'Passwords do not match');
+        hasError = true;
+      }
+
+      if (!termsAccepted) {
+        alert('Please accept the Terms of Service and Privacy Policy');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // Show loading state
+      submitBtn.classList.add('loading');
+      submitBtn.textContent = 'Creating account';
+
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        // In production, call your Django API:
+        // const response = await fetch('/api/auth/register/', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     first_name: firstName,
+        //     last_name: lastName,
+        //     username,
+        //     email,
+        //     password
+        //   })
+        // });
+        // 
+        // if (!response.ok) {
+        //   const data = await response.json();
+        //   throw new Error(data.detail || 'Registration failed');
+        // }
+        // 
+        // const data = await response.json();
+        // localStorage.setItem('token', data.token);
+
+        // Redirect to app
+        window.location.href = 'cinevous.html';
+
+      } catch (error) {
+        showError('email', error.message || 'Something went wrong. Please try again.');
+        submitBtn.classList.remove('loading');
+        submitBtn.textContent = 'Create Account';
+      }
+    });
+
+    function showError(fieldName, message) {
+      const field = form.querySelector(`[name="${fieldName}"]`);
+      const formGroup = field.closest('.form-group');
+      formGroup.classList.remove('success');
+      formGroup.classList.add('error');
+      
+      // Remove existing error message
+      const existingError = formGroup.querySelector('.error-message');
+      if (existingError) existingError.remove();
+      
+      const errorMsg = document.createElement('span');
+      errorMsg.className = 'error-message';
+      errorMsg.textContent = message;
+      formGroup.appendChild(errorMsg);
+    }
+
+    // Clear errors on input focus
+    document.querySelectorAll('.form-group input').forEach(input => {
+      input.addEventListener('focus', () => {
+        const formGroup = input.closest('.form-group');
+        formGroup.classList.remove('error');
+        const errorMsg = formGroup.querySelector('.error-message');
+        if (errorMsg) errorMsg.remove();
+      });
+    });
+  </script>
+</body>
+</html>

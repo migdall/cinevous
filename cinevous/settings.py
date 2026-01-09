@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'cinevous',
+    'storylovers',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -141,6 +142,10 @@ STATICFILES_DIRS = [
     BASE_DIR / 'cinevous' / 'static',
     BASE_DIR / 'dist',
 ]
+
+LOGIN_URL = '/login/'
+
+LOGIN_REDIRECT_URL = '/app/'
 
 # CORS (for development)
 CORS_ALLOWED_ORIGINS = [

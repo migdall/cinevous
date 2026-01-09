@@ -16,11 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.views.generic import TemplateView
 from . import views
+from storylovers.views import FilmLogView, FilmView
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path('app/', TemplateView.as_view(template_name='app.html'), name='app'),
+    path('', views.index, name='index'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('app/', views.AppProtectedView.as_view(), name='app'),
+    path('api/filmlogs/', FilmLogView.as_view(), name='film_log_api'),
+    path('api/films/', FilmView.as_view(), name='film_api'),
     path('admin/', admin.site.urls),
 ]

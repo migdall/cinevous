@@ -25,6 +25,69 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
   const [review, setReview] = useState(editingFilm?.review || '')
   const [selectedRubricId, setSelectedRubricId] = useState<number | null>(null)
   const [rubricRatings, setRubricRatings] = useState<{ [categoryId: number]: number }>({})
+  
+  // Film search state
+  const [filmId, setFilmId] = useState<number | null>(null)
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
+
+  // Search for films as user types
+  const searchFilms = async (searchTitle: string) => {
+    if (searchTitle.length < 2) {
+      setSearchResults([])
+      setShowDropdown(false)
+      return
+    }
+
+    try {
+      setSearching(true)
+      const response = await fetch(`/api/films/?q=${encodeURIComponent(searchTitle)}`, {
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSearchResults(data.films)
+        setShowDropdown(data.films.length > 0)
+      }
+    } catch (error) {
+      console.error('Error searching films:', error)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  // Handle title input with debouncing
+  const handleTitleChange = (value: string) => {
+    setTitle(value)
+    // Clear film selection when user types
+    if (filmId) {
+      setFilmId(null)
+      setDirector('')
+      setYear(new Date().getFullYear())
+      setGenre('Drama')
+      setCountry('')
+    }
+    // Debounce search
+    const timer = setTimeout(() => {
+      searchFilms(value)
+    }, 300)
+    return () => clearTimeout(timer)
+  }
+
+  // Select a film from search results
+  const selectFilm = (film: any) => {
+    setFilmId(film.id)
+    setTitle(film.title)
+    setDirector(film.director)
+    setYear(film.year)
+    setGenre(film.genre || 'Drama')
+    setCountry(film.country || '')
+    setDecade(film.decade || `${Math.floor(film.year / 10) * 10}s`)
+    setShowDropdown(false)
+    setSearchResults([])
+  }
 
   const selectedRubric = rubrics.find(r => r.id === selectedRubricId)
 
@@ -66,6 +129,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
   const handleSave = () => {
     if (title && director) {
       onSave({
+        filmId, // Add filmId to the save data
         title,
         director,
         year,
@@ -77,7 +141,7 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
         rating,
         review,
         rubricRatings: selectedRubricId ? { [selectedRubricId]: rubricRatings } : {}
-      })
+      } as any)
       handleClose()
     }
   }
@@ -128,12 +192,13 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
           Log a Film
         </h2>
 
-        {/* Title */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        {/* Title with Autocomplete */}
+        <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            onFocus={() => title.length >= 2 && searchResults.length > 0 && setShowDropdown(true)}
             placeholder="Film title"
             style={{ 
               width: '100%',
@@ -148,6 +213,70 @@ function FilmLogModal({ isOpen, onClose, onSave, editingFilm, rubrics }: FilmLog
             }}
             autoFocus
           />
+          {searching && (
+            <div style={{
+              position: 'absolute',
+              right: '0',
+              top: '12px',
+              fontSize: '0.75rem',
+              color: 'rgba(232, 228, 223, 0.4)'
+            }}>
+              Searching...
+            </div>
+          )}
+          
+          {/* Autocomplete Dropdown */}
+          {showDropdown && searchResults.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: 'rgba(26, 23, 20, 0.98)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '2px',
+              marginTop: '0.5rem',
+              maxHeight: '300px',
+              overflowY: 'auto',
+              zIndex: 1000,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+            }}>
+              {searchResults.map((film) => (
+                <button
+                  key={film.id}
+                  onClick={() => selectFilm(film)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '12px 16px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    color: '#e8e4df',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  <div style={{
+                    fontSize: '0.95rem',
+                    fontFamily: "'DM Sans', sans-serif",
+                    marginBottom: '4px'
+                  }}>
+                    {film.title}
+                  </div>
+                  <div style={{
+                    fontSize: '0.8rem',
+                    color: 'rgba(232, 228, 223, 0.5)',
+                    fontFamily: "'DM Sans', sans-serif"
+                  }}>
+                    {film.director} · {film.year}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Director */}
