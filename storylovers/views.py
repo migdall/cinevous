@@ -86,13 +86,21 @@ class FilmLogView(View):
 
 @method_decorator([login_required, csrf_protect], name='dispatch')
 class FilmView(View):
-    def get(self, request, q=''):
+    def get(self, request):
         if request.method == 'GET':
+            # Get the search query from URL parameters
+            q = request.GET.get('q', '')
+            
+            # Only search if query is at least 2 characters
+            if len(q) < 2:
+                return JsonResponse([], safe=False, status=200)
+            
             try:
-                films = Film.objects.filter(title__icontains=q)
+                # Search films by title, limit to 10 results
+                films = Film.objects.filter(title__icontains=q)[:10]
             except Exception as e:
-                logging.error("Film not found with ID: %s", e)
-                return JsonResponse({'error': 'Film not found.'}, status=404)
+                logging.error("Error searching films: %s", e)
+                return JsonResponse({'error': 'Error searching films.'}, status=500)
             
             response_data = []
             for film in films:
