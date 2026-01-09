@@ -139,7 +139,9 @@ The app uses CSS custom properties for theming:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request.  
+
+To contribute, create a new branch off of the dev.  
 
 ## 📄 License
 
