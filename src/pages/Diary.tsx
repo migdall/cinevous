@@ -1,13 +1,62 @@
-import { useState } from 'react'
-import { mockFilms, mockRubrics } from '../data/mockData'
+import { useState, useEffect } from 'react'
+import { mockRubrics } from '../data/mockData'
 import type { Film, Rubric } from '../types'
 import FilmLogModal from '../components/FilmLogModal'
 
 function Diary() {
-  const [films, setFilms] = useState<Film[]>(mockFilms)
+  const [films, setFilms] = useState<Film[]>([])
   const [rubrics] = useState<Rubric[]>(mockRubrics)
   const [showLogModal, setShowLogModal] = useState(false)
   const [editingFilm, setEditingFilm] = useState<Film | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch film logs on component mount
+  useEffect(() => {
+    fetchFilmLogs()
+  }, [])
+
+  const fetchFilmLogs = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/filmlogs/', {
+        method: 'GET',
+        credentials: 'include', // Include auth cookies
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch film logs')
+      }
+
+      const data = await response.json()
+      
+      // Transform API data to match our Film type
+      const transformedFilms: Film[] = data.film_logs.map((filmLog: any) => ({
+        id: filmLog.id,
+        title: filmLog.film?.title || filmLog.title,
+        director: filmLog.film?.director || filmLog.director,
+        year: filmLog.film?.year || filmLog.year,
+        genre: filmLog.film?.genre || filmLog.genre,
+        country: filmLog.film?.country || filmLog.country,
+        decade: filmLog.film?.decade || filmLog.decade,
+        mood: filmLog.mood,
+        isNewDirector: filmLog.is_new_director,
+        rating: filmLog.rating,
+        review: filmLog.review,
+        loggedAt: new Date(filmLog.watched_at || filmLog.created_at),
+        rubricRatings: filmLog.rubric_ratings || {}
+      }))
+
+      setFilms(transformedFilms)
+      setError(null)
+    } catch (err) {
+      console.error('Error fetching film logs:', err)
+      setError('Failed to load film logs')
+      setFilms([]) // Set empty array on error
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStats = () => {
     const countries = new Set(films.map(f => f.country.split('/').map(c => c.trim())).flat())
@@ -82,15 +131,10 @@ function Diary() {
         throw new Error('Failed to save film log')
       }
 
-      const savedFilm = await response.json()
+      await response.json()
       
-      // Add the new film to the UI
-      const newFilm: Film = {
-        ...filmData,
-        id: savedFilm.id || Date.now(),
-        loggedAt: savedFilm.watched_at ? new Date(savedFilm.watched_at) : new Date()
-      }
-      setFilms([newFilm, ...films])
+      // Refresh the film logs from the database
+      await fetchFilmLogs()
       
       // Close modal
       setShowLogModal(false)
@@ -244,8 +288,91 @@ function Diary() {
         </button>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div style={{
+          textAlign: 'center',
+          padding: '4rem 2rem',
+          color: 'rgba(232, 228, 223, 0.5)'
+        }}>
+          <div style={{
+            fontSize: '1.2rem',
+            marginBottom: '1rem',
+            fontFamily: "'Cormorant Garamond', serif"
+          }}>
+            Loading your film diary...
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div style={{
+          textAlign: 'center',
+          padding: '4rem 2rem',
+          background: 'rgba(220, 100, 100, 0.1)',
+          border: '1px solid rgba(220, 100, 100, 0.2)',
+          borderRadius: '2px'
+        }}>
+          <div style={{
+            fontSize: '1.2rem',
+            marginBottom: '1rem',
+            color: 'rgba(220, 100, 100, 0.8)',
+            fontFamily: "'Cormorant Garamond', serif"
+          }}>
+            {error}
+          </div>
+          <button
+            onClick={fetchFilmLogs}
+            className="btn btn-secondary"
+            style={{ marginTop: '1rem' }}
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && films.length === 0 && (
+        <div style={{
+          textAlign: 'center',
+          padding: '4rem 2rem'
+        }}>
+          <div style={{
+            fontSize: '2rem',
+            marginBottom: '1rem',
+            opacity: 0.3
+          }}>
+            🎬
+          </div>
+          <h3 style={{
+            fontSize: '1.8rem',
+            fontWeight: '300',
+            marginBottom: '1rem',
+            fontFamily: "'Cormorant Garamond', serif"
+          }}>
+            Your film diary is empty
+          </h3>
+          <p style={{
+            fontSize: '0.9rem',
+            color: 'rgba(232, 228, 223, 0.5)',
+            marginBottom: '2rem',
+            fontFamily: "'DM Sans', sans-serif"
+          }}>
+            Start logging films to build your cinematic journey
+          </p>
+          <button
+            onClick={() => setShowLogModal(true)}
+            className="btn btn-primary"
+          >
+            Log Your First Film
+          </button>
+        </div>
+      )}
+
       {/* Film Entries */}
-      <div>
+      {!loading && !error && films.length > 0 && (
+        <div>
         {films.map(film => (
           <div 
             key={film.id} 
@@ -337,7 +464,8 @@ function Diary() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Film Log Modal */}
       <FilmLogModal

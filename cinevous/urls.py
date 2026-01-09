@@ -17,13 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
-from storylovers import views as storylovers_views
+from storylovers.views import FilmLogView
 
 urlpatterns = [
     path('', views.index, name='index'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('app/', views.AppProtectedView.as_view(), name='app'),
-    path('api/filmlogs/', storylovers_views.film_log_create, name='film_log_create'),
+    path('api/filmlogs/', FilmLogView.as_view(), name='film_log_api'),
     path('admin/', admin.site.urls),
 ]
