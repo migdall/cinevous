@@ -19,7 +19,8 @@ def film_log_create(request):
         data = json.loads(request.body)
 
         try:
-            film_id = data['film_id']
+            # TODO film_id = data['film_id']
+            film_id = 1  # Temporary hardcoded value
             rating_num = data['rating']
             review_text = data.get('review', '')
             mood = data.get('mood', '')
