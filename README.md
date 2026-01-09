@@ -77,6 +77,13 @@ npm run dev
 
 # Build for production
 npm run build
+
+# Run the backend server locally  
+python manage.py runserver  
+
+# Run backend tests  
+python manage.py test # Use a launch.json file with vscode to debug the tests
+
 ```
 
 ### Development
