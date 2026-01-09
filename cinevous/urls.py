@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
-from storylovers.views import FilmLogView
+from storylovers.views import FilmLogView, FilmView
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -25,5 +25,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('app/', views.AppProtectedView.as_view(), name='app'),
     path('api/filmlogs/', FilmLogView.as_view(), name='film_log_api'),
+    path('api/films/', FilmView.as_view(), name='film_api'),
     path('admin/', admin.site.urls),
 ]

@@ -102,7 +102,7 @@ function Diary() {
 
   const stats = getStats()
 
-  const handleLogFilm = async (filmData: Omit<Film, 'id' | 'loggedAt'>) => {
+  const handleLogFilm = async (filmData: any) => {
     try {
       // POST to Django API
       const response = await fetch('/api/filmlogs/', {
@@ -113,6 +113,7 @@ function Diary() {
         },
         credentials: 'include',
         body: JSON.stringify({
+          film_id: filmData.filmId, // Use existing film ID if selected
           title: filmData.title,
           director: filmData.director,
           year: filmData.year,

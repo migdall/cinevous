@@ -44,8 +44,8 @@ class FilmLogView(View):
             data = json.loads(request.body)
 
             try:
-                # TODO film_id = data['film_id']
-                film_id = 1  # Temporary hardcoded value
+                film_id = data['film_id']
+                # film_id = 1  # Temporary hardcoded value
                 rating_num = data['rating']
                 review_text = data.get('review', '')
                 mood = data.get('mood', '')
@@ -83,3 +83,26 @@ class FilmLogView(View):
     def delete(self, request):
         # Example DELETE handler if needed
         return JsonResponse({'status': 'DELETE not implemented'}, status=501)   
+
+@method_decorator([login_required, csrf_protect], name='dispatch')
+class FilmView(View):
+    def get(self, request, q=''):
+        if request.method == 'GET':
+            try:
+                films = Film.objects.filter(title__icontains=q)
+            except Exception as e:
+                logging.error("Film not found with ID: %s", e)
+                return JsonResponse({'error': 'Film not found.'}, status=404)
+            
+            response_data = []
+            for film in films:
+                response_data.append({
+                    'id': film.id,
+                    'title': film.title,
+                    'director': film.director,
+                    'country': film.country,
+                    'year': film.year,
+                    'genre': film.genre,
+                    'decade': film.decade,
+                })
+            return JsonResponse({'films': response_data}, status=200)
