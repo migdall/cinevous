@@ -27,6 +27,60 @@ class StoryLover(models.Model):
         return self.display_name
 
 
+class StoryLocation(models.Model):
+    """
+    Represents a location whether real or fictional that is in a story.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    country = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class FilmGenre(models.Model):
+    """
+    Represents a type of film genre.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class FilmCountry(models.Model):
+    """
+    Represents a country where a film's creative team, producer, studio, distributor, or funding origin is based.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name_plural = 'Film Countries'
+
+    def __str__(self):
+        return self.name
+
+
+class FilmDirector(models.Model):
+    """
+    Represents a film director.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 
 class Film(models.Model):
     """
@@ -34,13 +88,16 @@ class Film(models.Model):
     This could be populated from an external API like TMDB or manually.
     """
     title = models.CharField(max_length=255)
-    director = models.CharField(max_length=255)
     year = models.PositiveIntegerField()
-    genre = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, blank=True)
     decade = models.CharField(max_length=10, blank=True)  # e.g., "2020s"
     tmdb_id = models.PositiveIntegerField(null=True, blank=True, unique=True)
     poster_url = models.URLField(blank=True)
+    
+    # Many-to-many relationships
+    directors = models.ManyToManyField(FilmDirector, related_name='films', blank=True)
+    genres = models.ManyToManyField(FilmGenre, related_name='films', blank=True)
+    countries = models.ManyToManyField(FilmCountry, related_name='films', blank=True)
+    story_locations = models.ManyToManyField(StoryLocation, related_name='films', blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -49,7 +106,6 @@ class Film(models.Model):
         ordering = ['-year', 'title']
         indexes = [
             models.Index(fields=['title']),
-            models.Index(fields=['director']),
             models.Index(fields=['year']),
         ]
 
@@ -61,6 +117,22 @@ class Film(models.Model):
         if self.year:
             self.decade = f"{(self.year // 10) * 10}s"
         super().save(*args, **kwargs)
+    
+    def get_directors_display(self):
+        """Return comma-separated list of directors"""
+        return ', '.join([d.name for d in self.directors.all()]) or self.director
+    
+    def get_genres_display(self):
+        """Return comma-separated list of genres"""
+        return ', '.join([g.name for g in self.genres.all()]) or self.genre
+    
+    def get_countries_display(self):
+        """Return comma-separated list of countries"""
+        return ', '.join([c.name for c in self.countries.all()]) or self.country
+    
+    def get_story_locations_display(self):
+        """Return comma-separated list of story locations"""
+        return ', '.join([sl.name for sl in self.story_locations.all()])
 
 
 class Rubric(models.Model):
@@ -177,8 +249,9 @@ class FilmLog(models.Model):
             # Check if this is a new director for the story_lover
             existing_directors = FilmLog.objects.filter(
                 story_lover=self.story_lover
-            ).values_list('film__director', flat=True).distinct()
-            self.is_new_director = self.film.director not in existing_directors
+            ).values_list('film__directors', flat=True).distinct()
+            for director in self.film.directors.values_list():
+                self.is_new_director = director[0] not in existing_directors
             
             # Check if rewatch
             self.is_rewatch = FilmLog.objects.filter(
